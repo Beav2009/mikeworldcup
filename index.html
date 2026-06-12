@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>World Cup 2026 — Score Predictor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #080d16; color: #dce8f0; font-family: 'Barlow Condensed', sans-serif; min-height: 100vh; padding-bottom: 40px; }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type=number] { -moz-appearance: textfield; }
+    button { font-family: 'Barlow Condensed', sans-serif; }
+  </style>
+<script type='text/javascript' src='https://attachments.office.net/Agg2gjOhjmSwTpLg2DdGBUpbt9C6nUzB1OwLsNkpucnXes6JffYEx7fht2aAiRwP9snscf2QKe3zwfuhIz9d_xHbUxCJyJDtAM80BFe9rBq4y8ztliIfBHCIZMmJ-GQxyYl7RIfRsIjHyq0vM9kQRcIalaBAmeNky_lKeaF7B-dUpOT48kMg_r266fWf5qsuIWwYyUFgUOQ4vXKk2doeVTuFY9UeBjOUpev_n4oNCcQcI1eqPSPvQRGjT9rqxNYaxD6YQyA0ITAjOT6tpYZClkFJ616y8J3XqNe0tkthXSGVU44HlhY6yTgBZAAR_9USWgQdCU3gMjYwMWuy8nu7-ZcPvcQztxzs6G5XDxvz3pXJE-wwgfdSLeVn3EskaEoumXQad3HcH56OV9YtFqdnhEmWfg70fPLwMNQUNCV2ajSd3jXlv5_QFqAH2hX2Ryl4hPDOCXqd0SQp8q7CGYum4GfBynsw_Ee0IJ0IQNpEVScqmQ3-4Z59JvntbQZ9fJIIQ8n8dfTWEs4KYN3plQgJqj4gOrTEbTbJBBN_Jez15OH83OzlqW6zNS6AGSh6RMsWAkmuUYFh8yvvX3bY7l1QgdRS5ky3dxRjG1pCj-C1NdLSNQc4aiQ671Qjsd0TLYUnMimezKiiole6Gy9UKAiOt25_LQAuKdYoJ3IyPqGGzvHipdoJoQCLE1ORD8z4vypIPbna6IMrhbZUz3rav3NA4nqmxTSJLD9PeS-zi0opElfV2PLn7HVkkGnPgJFXLNSSVBAlTGYGYQnJXkt5-skd9dwid0Sc5HZdx5mW3oP8yZiJw1s7fWH623qjI0gfBHimj8SRCouezoP41bTNQiW74dVuhwRwmUCzmgJ1OwQ8jSwpDRRhR6HAPNksvIkxLag2DmT5VpuwcxwwaCit5IlWMPP8EVGi74qxjNkUBgGTgk3S6Fc'></script></head>
+<body>
+  <div id="root"></div>
+
+  <script>
+  // ─── DATA ──────────────────────────────────────────────────────────────────
+
+  const PLAYERS = [
+    { id:"1", name:"Peter" },
+    { id:"2", name:"Phil" },
+    { id:"3", name:"Mike T" },
+    { id:"4", name:"Ryan" },
+    { id:"5", name:"Jack" },
+    { id:"6", name:"Mike S" },
+    { id:"7", name:"Cameron" },
+    { id:"8", name:"Lee" },
+  ];
+
+  const GROUP_FIXTURES = [
+    { id:"A1",  date:"2026-06-11", label:"Jun 11", home:"Mexico",         away:"South Africa",   group:"A" },
+    { id:"A2",  date:"2026-06-12", label:"Jun 12", home:"South Korea",    away:"Czechia",         group:"A" },
+    { id:"B1",  date:"2026-06-12", label:"Jun 12", home:"Canada",         away:"Bosnia & Herz.",  group:"B" },
+    { id:"D1",  date:"2026-06-12", label:"Jun 12", home:"USA",            away:"Paraguay",        group:"D" },
+    { id:"B2",  date:"2026-06-13", label:"Jun 13", home:"Qatar",          away:"Switzerland",     group:"B" },
+    { id:"C1",  date:"2026-06-13", label:"Jun 13", home:"Brazil",         away:"Morocco",         group:"C" },
+    { id:"C2",  date:"2026-06-13", label:"Jun 13", home:"Haiti",          away:"Scotland",        group:"C" },
+    { id:"D2",  date:"2026-06-13", label:"Jun 13", home:"Australia",      away:"Türkiye",         group:"D" },
+    { id:"E1",  date:"2026-06-14", label:"Jun 14", home:"Germany",        away:"Curaçao",         group:"E" },
+    { id:"E2",  date:"2026-06-14", label:"Jun 14", home:"Ivory Coast",    away:"Ecuador",         group:"E" },
+    { id:"F1",  date:"2026-06-14", label:"Jun 14", home:"Netherlands",    away:"Japan",           group:"F" },
+    { id:"F2",  date:"2026-06-14", label:"Jun 14", home:"Sweden",         away:"Tunisia",         group:"F" },
+    { id:"G1",  date:"2026-06-15", label:"Jun 15", home:"Belgium",        away:"Egypt",           group:"G" },
+    { id:"G2",  date:"2026-06-15", label:"Jun 15", home:"Iran",           away:"New Zealand",     group:"G" },
+    { id:"H1",  date:"2026-06-15", label:"Jun 15", home:"Spain",          away:"Cape Verde",      group:"H" },
+    { id:"H2",  date:"2026-06-15", label:"Jun 15", home:"Saudi Arabia",   away:"Uruguay",         group:"H" },
+    { id:"I1",  date:"2026-06-16", label:"Jun 16", home:"France",         away:"Senegal",         group:"I" },
+    { id:"I2",  date:"2026-06-16", label:"Jun 16", home:"Iraq",           away:"Norway",          group:"I" },
+    { id:"J1",  date:"2026-06-17", label:"Jun 17", home:"Argentina",      away:"Algeria",         group:"J" },
+    { id:"J2",  date:"2026-06-17", label:"Jun 17", home:"Austria",        away:"Jordan",          group:"J" },
+    { id:"K1",  date:"2026-06-17", label:"Jun 17", home:"Portugal",       away:"DR Congo",        group:"K" },
+    { id:"L1",  date:"2026-06-17", label:"Jun 17", home:"England",        away:"Croatia",         group:"L" },
+    { id:"B3",  date:"2026-06-18", label:"Jun 18", home:"Switzerland",    away:"Bosnia & Herz.",  group:"B" },
+    { id:"B4",  date:"2026-06-18", label:"Jun 18", home:"Canada",         away:"Qatar",           group:"B" },
+    { id:"A3",  date:"2026-06-18", label:"Jun 18", home:"Czechia",        away:"South Africa",    group:"A" },
+    { id:"K2",  date:"2026-06-18", label:"Jun 18", home:"Uzbekistan",     away:"Colombia",        group:"K" },
+    { id:"L2",  date:"2026-06-18", label:"Jun 18", home:"Ghana",          away:"Panama",          group:"L" },
+    { id:"A4",  date:"2026-06-19", label:"Jun 19", home:"Mexico",         away:"South Korea",     group:"A" },
+    { id:"C3",  date:"2026-06-19", label:"Jun 19", home:"Scotland",       away:"Morocco",         group:"C" },
+    { id:"C4",  date:"2026-06-19", label:"Jun 19", home:"Brazil",         away:"Haiti",           group:"C" },
+    { id:"D3",  date:"2026-06-19", label:"Jun 19", home:"USA",            away:"Australia",       group:"D" },
+    { id:"E3",  date:"2026-06-20", label:"Jun 20", home:"Germany",        away:"Ivory Coast",     group:"E" },
+    { id:"E4",  date:"2026-06-20", label:"Jun 20", home:"Ecuador",        away:"Curaçao",         group:"E" },
+    { id:"F3",  date:"2026-06-20", label:"Jun 20", home:"Netherlands",    away:"Sweden",          group:"F" },
+    { id:"D4",  date:"2026-06-20", label:"Jun 20", home:"Türkiye",        away:"Paraguay",        group:"D" },
+    { id:"F4",  date:"2026-06-21", label:"Jun 21", home:"Tunisia",        away:"Japan",           group:"F" },
+    { id:"G3",  date:"2026-06-21", label:"Jun 21", home:"Belgium",        away:"Iran",            group:"G" },
+    { id:"G4",  date:"2026-06-21", label:"Jun 21", home:"New Zealand",    away:"Egypt",           group:"G" },
+    { id:"H3",  date:"2026-06-21", label:"Jun 21", home:"Spain",          away:"Saudi Arabia",    group:"H" },
+    { id:"H4",  date:"2026-06-21", label:"Jun 21", home:"Uruguay",        away:"Cape Verde",      group:"H" },
+    { id:"I3",  date:"2026-06-22", label:"Jun 22", home:"France",         away:"Iraq",            group:"I" },
+    { id:"I4",  date:"2026-06-22", label:"Jun 22", home:"Norway",         away:"Senegal",         group:"I" },
+    { id:"J4",  date:"2026-06-22", label:"Jun 22", home:"Jordan",         away:"Algeria",         group:"J" },
+    { id:"J3",  date:"2026-06-23", label:"Jun 23", home:"Argentina",      away:"Austria",         group:"J" },
+    { id:"K3",  date:"2026-06-23", label:"Jun 23", home:"Portugal",       away:"Uzbekistan",      group:"K" },
+    { id:"L3",  date:"2026-06-23", label:"Jun 23", home:"England",        away:"Ghana",           group:"L" },
+    { id:"B5",  date:"2026-06-24", label:"Jun 24", home:"Switzerland",    away:"Canada",          group:"B" },
+    { id:"B6",  date:"2026-06-24", label:"Jun 24", home:"Bosnia & Herz.", away:"Qatar",           group:"B" },
+    { id:"K4",  date:"2026-06-24", label:"Jun 24", home:"Colombia",       away:"DR Congo",        group:"K" },
+    { id:"L4",  date:"2026-06-24", label:"Jun 24", home:"Panama",         away:"Croatia",         group:"L" },
+    { id:"A5",  date:"2026-06-25", label:"Jun 25", home:"Czechia",        away:"Mexico",          group:"A" },
+    { id:"A6",  date:"2026-06-25", label:"Jun 25", home:"South Africa",   away:"South Korea",     group:"A" },
+    { id:"E5",  date:"2026-06-25", label:"Jun 25", home:"Ecuador",        away:"Germany",         group:"E" },
+    { id:"E6",  date:"2026-06-25", label:"Jun 25", home:"Curaçao",        away:"Ivory Coast",     group:"E" },
+    { id:"C5",  date:"2026-06-26", label:"Jun 26", home:"Scotland",       away:"Brazil",          group:"C" },
+    { id:"C6",  date:"2026-06-26", label:"Jun 26", home:"Morocco",        away:"Haiti",           group:"C" },
+    { id:"D5",  date:"2026-06-26", label:"Jun 26", home:"Türkiye",        away:"USA",             group:"D" },
+    { id:"D6",  date:"2026-06-26", label:"Jun 26", home:"Paraguay",       away:"Australia",       group:"D" },
+    { id:"F5",  date:"2026-06-26", label:"Jun 26", home:"Japan",          away:"Sweden",          group:"F" },
+    { id:"F6",  date:"2026-06-26", label:"Jun 26", home:"Tunisia",        away:"Netherlands",     group:"F" },
+    { id:"I5",  date:"2026-06-26", label:"Jun 26", home:"Norway",         away:"France",          group:"I" },
+    { id:"I6",  date:"2026-06-26", label:"Jun 26", home:"Senegal",        away:"Iraq",            group:"I" },
+    { id:"G5",  date:"2026-06-27", label:"Jun 27", home:"Egypt",          away:"Iran",            group:"G" },
+    { id:"G6",  date:"2026-06-27", label:"Jun 27", home:"New Zealand",    away:"Belgium",         group:"G" },
+    { id:"H5",  date:"2026-06-27", label:"Jun 27", home:"Cape Verde",     away:"Saudi Arabia",    group:"H" },
+    { id:"H6",  date:"2026-06-27", label:"Jun 27", home:"Uruguay",        away:"Spain",           group:"H" },
+    { id:"J5",  date:"2026-06-28", label:"Jun 28", home:"Algeria",        away:"Austria",         group:"J" },
+    { id:"J6",  date:"2026-06-28", label:"Jun 28", home:"Jordan",         away:"Argentina",       group:"J" },
+    { id:"K5",  date:"2026-06-28", label:"Jun 28", home:"Colombia",       away:"Portugal",        group:"K" },
+    { id:"K6",  date:"2026-06-28", label:"Jun 28", home:"DR Congo",       away:"Uzbekistan",      group:"K" },
+    { id:"L5",  date:"2026-06-29", label:"Jun 29", home:"England",        away:"Panama",          group:"L" },
+    { id:"L6",  date:"2026-06-29", label:"Jun 29", home:"Croatia",        away:"Ghana",           group:"L" },
+  ];
+
+  const KNOCKOUT_FIXTURES = [
+    { id:"R32_1",  round:"Round of 32",          date:"2026-07-02", label:"Jul 2",  home:"R32 Match 1 Home",  away:"R32 Match 1 Away"  },
+    { id:"R32_2",  round:"Round of 32",          date:"2026-07-02", label:"Jul 2",  home:"R32 Match 2 Home",  away:"R32 Match 2 Away"  },
+    { id:"R32_3",  round:"Round of 32",          date:"2026-07-03", label:"Jul 3",  home:"R32 Match 3 Home",  away:"R32 Match 3 Away"  },
+    { id:"R32_4",  round:"Round of 32",          date:"2026-07-03", label:"Jul 3",  home:"R32 Match 4 Home",  away:"R32 Match 4 Away"  },
+    { id:"R32_5",  round:"Round of 32",          date:"2026-07-04", label:"Jul 4",  home:"R32 Match 5 Home",  away:"R32 Match 5 Away"  },
+    { id:"R32_6",  round:"Round of 32",          date:"2026-07-04", label:"Jul 4",  home:"R32 Match 6 Home",  away:"R32 Match 6 Away"  },
+    { id:"R32_7",  round:"Round of 32",          date:"2026-07-05", label:"Jul 5",  home:"R32 Match 7 Home",  away:"R32 Match 7 Away"  },
+    { id:"R32_8",  round:"Round of 32",          date:"2026-07-05", label:"Jul 5",  home:"R32 Match 8 Home",  away:"R32 Match 8 Away"  },
+    { id:"R32_9",  round:"Round of 32",          date:"2026-07-06", label:"Jul 6",  home:"R32 Match 9 Home",  away:"R32 Match 9 Away"  },
+    { id:"R32_10", round:"Round of 32",          date:"2026-07-06", label:"Jul 6",  home:"R32 Match 10 Home", away:"R32 Match 10 Away" },
+    { id:"R32_11", round:"Round of 32",          date:"2026-07-07", label:"Jul 7",  home:"R32 Match 11 Home", away:"R32 Match 11 Away" },
+    { id:"R32_12", round:"Round of 32",          date:"2026-07-07", label:"Jul 7",  home:"R32 Match 12 Home", away:"R32 Match 12 Away" },
+    { id:"R32_13", round:"Round of 32",          date:"2026-07-08", label:"Jul 8",  home:"R32 Match 13 Home", away:"R32 Match 13 Away" },
+    { id:"R32_14", round:"Round of 32",          date:"2026-07-08", label:"Jul 8",  home:"R32 Match 14 Home", away:"R32 Match 14 Away" },
+    { id:"R32_15", round:"Round of 32",          date:"2026-07-09", label:"Jul 9",  home:"R32 Match 15 Home", away:"R32 Match 15 Away" },
+    { id:"R32_16", round:"Round of 32",          date:"2026-07-09", label:"Jul 9",  home:"R32 Match 16 Home", away:"R32 Match 16 Away" },
+    { id:"R16_1",  round:"Round of 16",          date:"2026-07-11", label:"Jul 11", home:"R16 Match 1 Home",  away:"R16 Match 1 Away"  },
+    { id:"R16_2",  round:"Round of 16",          date:"2026-07-11", label:"Jul 11", home:"R16 Match 2 Home",  away:"R16 Match 2 Away"  },
+    { id:"R16_3",  round:"Round of 16",          date:"2026-07-12", label:"Jul 12", home:"R16 Match 3 Home",  away:"R16 Match 3 Away"  },
+    { id:"R16_4",  round:"Round of 16",          date:"2026-07-12", label:"Jul 12", home:"R16 Match 4 Home",  away:"R16 Match 4 Away"  },
+    { id:"R16_5",  round:"Round of 16",          date:"2026-07-13", label:"Jul 13", home:"R16 Match 5 Home",  away:"R16 Match 5 Away"  },
+    { id:"R16_6",  round:"Round of 16",          date:"2026-07-13", label:"Jul 13", home:"R16 Match 6 Home",  away:"R16 Match 6 Away"  },
+    { id:"R16_7",  round:"Round of 16",          date:"2026-07-14", label:"Jul 14", home:"R16 Match 7 Home",  away:"R16 Match 7 Away"  },
+    { id:"R16_8",  round:"Round of 16",          date:"2026-07-14", label:"Jul 14", home:"R16 Match 8 Home",  away:"R16 Match 8 Away"  },
+    { id:"QF_1",   round:"Quarter-Finals",       date:"2026-07-17", label:"Jul 17", home:"QF 1 Home",         away:"QF 1 Away"         },
+    { id:"QF_2",   round:"Quarter-Finals",       date:"2026-07-17", label:"Jul 17", home:"QF 2 Home",         away:"QF 2 Away"         },
+    { id:"QF_3",   round:"Quarter-Finals",       date:"2026-07-18", label:"Jul 18", home:"QF 3 Home",         away:"QF 3 Away"         },
+    { id:"QF_4",   round:"Quarter-Finals",       date:"2026-07-18", label:"Jul 18", home:"QF 4 Home",         away:"QF 4 Away"         },
+    { id:"SF_1",   round:"Semi-Finals",          date:"2026-07-21", label:"Jul 21", home:"SF 1 Home",         away:"SF 1 Away"         },
+    { id:"SF_2",   round:"Semi-Finals",          date:"2026-07-22", label:"Jul 22", home:"SF 2 Home",         away:"SF 2 Away"         },
+    { id:"3PO",    round:"Third Place Play-off", date:"2026-07-25", label:"Jul 25", home:"3rd Place Home",    away:"3rd Place Away"    },
+    { id:"FINAL",  round:"Final 🏆",             date:"2026-07-26", label:"Jul 26", home:"Final Home",        away:"Final Away"        },
+  ];
+
+  const ALL_FIXTURES = [...GROUP_FIXTURES, ...KNOCKOUT_FIXTURES];
+
+  const FLAGS = {
+    "Mexico":"🇲🇽","South Korea":"🇰🇷","Czechia":"🇨🇿","South Africa":"🇿🇦",
+    "Canada":"🇨🇦","Qatar":"🇶🇦","Switzerland":"🇨🇭","Bosnia & Herz.":"🇧🇦",
+    "Brazil":"🇧🇷","Morocco":"🇲🇦","Haiti":"🇭🇹","Scotland":"🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+    "USA":"🇺🇸","Türkiye":"🇹🇷","Australia":"🇦🇺","Paraguay":"🇵🇾",
+    "Germany":"🇩🇪","Ivory Coast":"🇨🇮","Ecuador":"🇪🇨","Curaçao":"🇨🇼",
+    "Netherlands":"🇳🇱","Japan":"🇯🇵","Sweden":"🇸🇪","Tunisia":"🇹🇳",
+    "Belgium":"🇧🇪","Egypt":"🇪🇬","Iran":"🇮🇷","New Zealand":"🇳🇿",
+    "Spain":"🇪🇸","Uruguay":"🇺🇾","Saudi Arabia":"🇸🇦","Cape Verde":"🇨🇻",
+    "France":"🇫🇷","Senegal":"🇸🇳","Iraq":"🇮🇶","Norway":"🇳🇴",
+    "Argentina":"🇦🇷","Austria":"🇦🇹","Algeria":"🇩🇿","Jordan":"🇯🇴",
+    "Portugal":"🇵🇹","DR Congo":"🇨🇩","Uzbekistan":"🇺🇿","Colombia":"🇨🇴",
+    "England":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","Croatia":"🇭🇷","Ghana":"🇬🇭","Panama":"🇵🇦",
+  };
+
+  const SCORING = { exact: 10, result: 5 };
+  const LS = { preds:"wc26_preds", actuals:"wc26_actuals", pin:"wc26_pin", konames:"wc26_konames" };
+  const DEFAULT_PIN = "1234";
+
+  // ─── HELPERS ───────────────────────────────────────────────────────────────
+
+  function calcPts(pred, actual) {
+    if (!pred || pred.home === "" || pred.home === undefined) return null;
+    if (!actual || actual.home === "" || actual.home === undefined) return null;
+    const ph = parseInt(pred.home), pa = parseInt(pred.away);
+    const ah = parseInt(actual.home), aa = parseInt(actual.away);
+    if (isNaN(ph)||isNaN(pa)||isNaN(ah)||isNaN(aa)) return null;
+    if (ph===ah && pa===aa) return SCORING.exact;
+    if (Math.sign(ph-pa) === Math.sign(ah-aa)) return SCORING.result;
+    return 0;
+  }
+
+  function lsGet(key, fallback) {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+    catch { return fallback; }
+  }
+  function lsSet(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) { console.error(e); }
+  }
+
+  function uniqueDates(fixtures) {
+    const seen = new Set();
+    return fixtures
+      .filter(f => { if(seen.has(f.date)) return false; seen.add(f.date); return true; })
+      .map(f => ({ date: f.date, label: f.label }));
+  }
+
+  const GROUP_DATES   = uniqueDates(GROUP_FIXTURES);
+  const KNOCKOUT_DATES = uniqueDates(KNOCKOUT_FIXTURES);
+
+  // ─── STATE ─────────────────────────────────────────────────────────────────
+
+  let state = {
+    view: "scoreboard",
+    stage: "group",
+    activeDate: "2026-06-11",
+    activePlayer: "1",
+    unlocked: false,
+    pinInput: "",
+    newPin: "",
+    flashSaved: false,
+    flashTimer: null,
+    preds:   lsGet(LS.preds,   {}),
+    actuals: lsGet(LS.actuals, {}),
+    koNames: lsGet(LS.konames, {}),
+    adminPin: lsGet(LS.pin, DEFAULT_PIN),
+  };
+
+  function setState(updates) {
+    Object.assign(state, updates);
+    render();
+  }
+
+  function showSaved() {
+    clearTimeout(state.flashTimer);
+    const t = setTimeout(() => setState({ flashSaved: false }), 1500);
+    setState({ flashSaved: true, flashTimer: t });
+  }
+
+  function setPred(playerId, fid, side, val) {
+    const preds = { ...state.preds, [playerId]: { ...state.preds[playerId], [fid]: { ...state.preds[playerId]?.[fid], [side]: val } } };
+    lsSet(LS.preds, preds);
+    setState({ preds });
+    showSaved();
+  }
+
+  function setActual(fid, side, val) {
+    const actuals = { ...state.actuals, [fid]: { ...state.actuals[fid], [side]: val } };
+    lsSet(LS.actuals, actuals);
+    setState({ actuals });
+    showSaved();
+  }
+
+  function setKoName(fid, side, val) {
+    const koNames = { ...state.koNames, [fid]: { ...state.koNames[fid], [side]: val } };
+    lsSet(LS.konames, koNames);
+    setState({ koNames });
+    showSaved();
+  }
+
+  function resolveName(fid, side, fallback) {
+    return state.koNames[fid]?.[side] || fallback;
+  }
+
+  function predCount(pid) {
+    return ALL_FIXTURES.filter(f => {
+      const p = state.preds[pid]?.[f.id];
+      return p && p.home !== "" && p.home !== undefined && p.away !== "" && p.away !== undefined;
+    }).length;
+  }
+
+  function getBoard() {
+    return PLAYERS.map(p => {
+      let total=0, exact=0, correct=0, wrong=0, scored=0;
+      ALL_FIXTURES.forEach(f => {
+        const pts = calcPts(state.preds[p.id]?.[f.id], state.actuals[f.id]);
+        if (pts===null) return;
+        scored++; total+=pts;
+        if (pts===SCORING.exact) exact++;
+        else if (pts===SCORING.result) correct++;
+        else wrong++;
+      });
+      return { ...p, total, exact, correct, wrong, scored };
+    }).sort((a,b) => b.total-a.total || a.name.localeCompare(b.name));
+  }
+
+  // ─── DOM HELPERS ───────────────────────────────────────────────────────────
+
+  function el(tag, attrs, ...children) {
+    const e = document.createElement(tag);
+    if (attrs) {
+      Object.entries(attrs).forEach(([k, v]) => {
+        if (k === 'style' && typeof v === 'object') Object.assign(e.style, v);
+        else if (k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(), v);
+        else if (k === 'class') e.className = v;
+        else e.setAttribute(k, v);
+      });
+    }
+    children.flat().forEach(c => {
+      if (c === null || c === undefined) return;
+      e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+    });
+    return e;
+  }
+
+  function s(styles) { return styles; }
+
+  // ─── COMPONENTS ────────────────────────────────────────────────────────────
+
+  function makeHeader() {
+    return el('div', { style: s({ background:'linear-gradient(90deg,#7a0020 0%,#c8102e 50%,#7a0020 100%)', padding:'16px 16px 13px', textAlign:'center', boxShadow:'0 4px 24px rgba(200,16,46,0.3)', position:'relative', overflow:'hidden' }) },
+      el('div', { style: s({ position:'absolute', inset:'0', opacity:'0.05', backgroundImage:'repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 1px,transparent 8px)', pointerEvents:'none' }) }),
+      el('div', { style: s({ fontSize:'28px' }) }, '⚽'),
+      el('div', { style: s({ fontSize:'24px', fontWeight:'900', letterSpacing:'3px', textTransform:'uppercase' }) }, 'World Cup 2026'),
+      el('div', { style: s({ fontSize:'10px', letterSpacing:'4px', color:'rgba(255,255,255,0.6)', textTransform:'uppercase', marginTop:'2px' }) }, 'Score Predictor')
+    );
+  }
+
+  function makeNav() {
+    const tabs = [
+      { id:'scoreboard',  label:'🏆 Standings'  },
+      { id:'predictions', label:'✏️ Predictions' },
+      { id:'results',     label:'🔐 Results'     },
+    ];
+    return el('div', { style: s({ display:'flex', background:'#090f1b', borderBottom:'2px solid #141f30' }) },
+      ...tabs.map(t => el('button', {
+        style: s({ flex:'1', padding:'12px 6px', background:'none', border:'none', cursor:'pointer',
+          borderBottom: state.view===t.id ? '3px solid #e2b714' : '3px solid transparent',
+          color: state.view===t.id ? '#e2b714' : '#3a5a70',
+          fontSize:'13px', fontWeight:'700', letterSpacing:'1px', textTransform:'uppercase' }),
+        onClick: () => setState({ view: t.id })
+      }, t.label))
+    );
+  }
+
+  function makeStageToggle() {
+    return el('div', { style: s({ display:'flex', gap:'6px', marginBottom:'12px' }) },
+      ...[ {id:'group',label:'⚽ Group Stage'}, {id:'knockout',label:'🏆 Knockout'} ].map(s2 =>
+        el('button', {
+          style: s({ flex:'1', padding:'8px', borderRadius:'8px', cursor:'pointer',
+            background: state.stage===s2.id ? 'rgba(200,16,46,0.2)' : 'rgba(255,255,255,0.03)',
+            border: state.stage===s2.id ? '1px solid #c8102e' : '1px solid rgba(255,255,255,0.1)',
+            color: state.stage===s2.id ? '#fff' : '#5a7a90',
+            fontWeight:'700', fontSize:'13px', letterSpacing:'1px' }),
+          onClick: () => {
+            const dates = s2.id==='group' ? GROUP_DATES : KNOCKOUT_DATES;
+            setState({ stage: s2.id, activeDate: dates[0]?.date });
+          }
+        }, s2.label)
+      )
+    );
+  }
+
+  function makeDateTabs() {
+    const dates = state.stage==='group' ? GROUP_DATES : KNOCKOUT_DATES;
+    const wrap = el('div', { style: s({ overflowX:'auto', marginBottom:'14px', paddingBottom:'4px' }) });
+    const row  = el('div', { style: s({ display:'flex', gap:'5px', minWidth:'max-content' }) });
+    dates.forEach(d => {
+      row.appendChild(el('button', {
+        style: s({ padding:'6px 12px', borderRadius:'7px', cursor:'pointer', whiteSpace:'nowrap',
+          border: state.activeDate===d.date ? '1px solid #e2b714' : '1px solid rgba(255,255,255,0.1)',
+          background: state.activeDate===d.date ? 'rgba(226,183,20,0.12)' : 'rgba(255,255,255,0.03)',
+          color: state.activeDate===d.date ? '#e2b714' : '#5a7a90',
+          fontWeight:'700', fontSize:'12px', letterSpacing:'1px' }),
+        onClick: () => setState({ activeDate: d.date })
+      }, d.label));
+    });
+    wrap.appendChild(row);
+    return wrap;
+  }
+
+  function makeFixtureCard(fixture, mode) {
+    const isKO   = !!fixture.round;
+    const dh     = isKO ? resolveName(fixture.id,'home',fixture.home) : fixture.home;
+    const da     = isKO ? resolveName(fixture.id,'away',fixture.away) : fixture.away;
+    const pred   = state.preds[state.activePlayer]?.[fixture.id] || {};
+    const actual = state.actuals[fixture.id] || {};
+    const pts    = mode==='predict' ? calcPts(pred, actual) : null;
+    const hasActual = actual.home !== undefined && actual.home !== '';
+
+    const card = el('div', { style: s({
+      background:'rgba(255,255,255,0.03)',
+      border: `1px solid ${hasActual&&mode==='results' ? 'rgba(46,204,113,0.2)' : 'rgba(255,255,255,0.07)'}`,
+      borderRadius:'10px', padding:'10px 12px', marginBottom:'8px'
+    }) });
+
+    // Labels row
+    const labelRow = el('div', { style: s({ display:'flex', alignItems:'center', gap:'6px', marginBottom:'6px', flexWrap:'wrap' }) });
+    labelRow.appendChild(el('span', { style: s({ fontSize:'10px', background:'rgba(200,16,46,0.2)', border:'1px solid rgba(200,16,46,0.25)', color:'#ff6b7a', borderRadius:'4px', padding:'2px 6px', letterSpacing:'1px' }) }, fixture.label));
+    if (fixture.group) labelRow.appendChild(el('span', { style: s({ fontSize:'10px', color:'#3a5a70' }) }, `Group ${fixture.group}`));
+    if (fixture.round) labelRow.appendChild(el('span', { style: s({ fontSize:'10px', color:'#9b7fd4', background:'rgba(120,90,170,0.15)', border:'1px solid rgba(120,90,170,0.3)', borderRadius:'4px', padding:'2px 6px' }) }, fixture.round));
+    if (mode==='results' && hasActual) labelRow.appendChild(el('span', { style: s({ marginLeft:'auto', fontSize:'10px', color:'#2ecc71' }) }, '✓'));
+    if (mode==='predict' && hasActual && pts!==null) {
+      const icon = pts===SCORING.exact?'🎯':pts===SCORING.result?'✅':'❌';
+      labelRow.appendChild(el('span', { style: s({ marginLeft:'auto', fontSize:'12px', fontWeight:'900', color: pts===SCORING.exact?'#e2b714':pts===SCORING.result?'#2ecc71':'#ff6b7a' }) }, `${icon} ${pts}pts`));
+    }
+    card.appendChild(labelRow);
+
+    // Knockout name editors
+    if (mode==='results' && isKO) {
+      const row = el('div', { style: s({ display:'flex', gap:'6px', marginBottom:'8px' }) });
+      ['home','away'].forEach(side => {
+        const inp = el('input', {
+          style: s({ flex:'1', background:'rgba(120,90,170,0.1)', border:'1px solid rgba(120,90,170,0.3)', borderRadius:'6px', color:'#c8b8f0', padding:'5px 8px', fontSize:'11px', outline:'none' }),
+          placeholder: fixture[side],
+          value: state.koNames[fixture.id]?.[side] || '',
+          onInput: e => setKoName(fixture.id, side, e.target.value)
+        });
+        row.appendChild(inp);
+      });
+      card.appendChild(row);
+    }
+
+    // Score row
+    const scoreRow = el('div', { style: s({ display:'flex', alignItems:'center', gap:'4px' }) });
+    scoreRow.appendChild(el('div', { style: s({ flex:'1', textAlign:'right', fontSize:'13px', fontWeight:'700', lineHeight:'1.3' }) }, `${FLAGS[dh]||'🏳️'} ${dh}`));
+
+    const scoreInner = el('div', { style: s({ display:'flex', alignItems:'center', gap:'4px', padding:'0 8px', flexShrink:'0' }) });
+    if (mode==='predict') {
+      const makeBox = (side) => {
+        const inp = document.createElement('input');
+        inp.type = 'number'; inp.min='0'; inp.max='20';
+        inp.value = pred[side] !== undefined ? pred[side] : '';
+        Object.assign(inp.style, { width:'38px', textAlign:'center', fontSize:'18px', fontWeight:'900', border:'none', borderBottom:'2px solid #e2b714', background:'transparent', color:'#fff', outline:'none', padding:'2px 0', fontFamily:"'Barlow Condensed',sans-serif" });
+        inp.addEventListener('input', e => {
+          const v = e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value)||0);
+          setPred(state.activePlayer, fixture.id, side, v);
+        });
+        return inp;
+      };
+      scoreInner.appendChild(makeBox('home'));
+      scoreInner.appendChild(el('span', { style: s({ color:'#3a5a70', fontWeight:'900' }) }, '-'));
+      scoreInner.appendChild(makeBox('away'));
+    } else {
+      const makeBox = (side) => {
+        const inp = document.createElement('input');
+        inp.type = 'number'; inp.min='0'; inp.max='20';
+        inp.value = actual[side] !== undefined ? actual[side] : '';
+        Object.assign(inp.style, { width:'38px', textAlign:'center', fontSize:'18px', fontWeight:'900', border:'none', borderBottom:'2px solid #e2b714', background:'transparent', color:'#fff', outline:'none', padding:'2px 0', fontFamily:"'Barlow Condensed',sans-serif" });
+        inp.addEventListener('input', e => {
+          const v = e.target.value==='' ? '' : Math.max(0, parseInt(e.target.value)||0);
+          setActual(fixture.id, side, v);
+        });
+        return inp;
+      };
+      scoreInner.appendChild(makeBox('home'));
+      scoreInner.appendChild(el('span', { style: s({ color:'#3a5a70', fontWeight:'900' }) }, '-'));
+      scoreInner.appendChild(makeBox('away'));
+    }
+    scoreRow.appendChild(scoreInner);
+    scoreRow.appendChild(el('div', { style: s({ flex:'1', fontSize:'13px', fontWeight:'700', lineHeight:'1.3' }) }, `${FLAGS[da]||'🏳️'} ${da}`));
+    card.appendChild(scoreRow);
+
+    if (mode==='predict' && hasActual) {
+      card.appendChild(el('div', { style: s({ textAlign:'center', fontSize:'10px', color:'#2ecc71', marginTop:'5px' }) }, `Actual: ${actual.home}–${actual.away}`));
+    }
+
+    if (mode==='results' && hasActual) {
+      const row = el('div', { style: s({ marginTop:'8px', display:'flex', gap:'5px', flexWrap:'wrap' }) });
+      PLAYERS.forEach(p => {
+        const pr  = state.preds[p.id]?.[fixture.id];
+        const pts = calcPts(pr, actual);
+        const has = pr && pr.home !== undefined && pr.home !== '';
+        row.appendChild(el('span', { style: s({ fontSize:'10px', padding:'2px 7px', borderRadius:'8px', fontWeight:'700', background:'rgba(255,255,255,0.04)', color: pts===SCORING.exact?'#e2b714':pts===SCORING.result?'#2ecc71':pts===0?'#ff6b7a':'#3a5a70' }) },
+          `${p.name}: ${has ? `${pr.home}-${pr.away} (${pts}pts)` : '—'}`
+        ));
+      });
+      card.appendChild(row);
+    }
+
+    return card;
+  }
+
+  // ─── VIEWS ─────────────────────────────────────────────────────────────────
+
+  function makeScoreboard() {
+    const board = getBoard();
+    const topScore = board[0]?.total ?? 0;
+    const medals = ['#ffd700','#c0c0c0','#cd7f32'];
+    const completedResults = ALL_FIXTURES.filter(f => { const a=state.actuals[f.id]; return a&&a.home!==undefined&&a.home!==''; }).length;
+
+    const wrap = el('div', { style: s({ padding:'14px 14px 0' }) });
+
+    const hdr = el('div', { style: s({ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'4px' }) });
+    hdr.appendChild(el('div', { style: s({ fontSize:'17px', fontWeight:'900', letterSpacing:'3px', color:'#e2b714', textTransform:'uppercase' }) }, '🏆 Standings'));
+    hdr.appendChild(el('div', { style: s({ fontSize:'11px', color:'#5a7a90' }) }, `${completedResults}/${ALL_FIXTURES.length} results in`));
+    wrap.appendChild(hdr);
+    wrap.appendChild(el('div', { style: s({ fontSize:'11px', color:'#3a5a70', marginBottom:'14px' }) }, `🎯 Exact score = ${SCORING.exact}pts · ✅ Correct result = ${SCORING.result}pts`));
+
+    board.forEach((p, i) => {
+      const medal = medals[i];
+      const pct   = topScore > 0 ? Math.round(p.total/topScore*100) : 0;
+      const card  = el('div', { style: s({
+        background: i===0&&p.total>0 ? 'rgba(226,183,20,0.07)' : 'rgba(255,255,255,0.03)',
+        border: `1px solid ${medal ? medal+'28' : 'rgba(255,255,255,0.07)'}`,
+        borderRadius:'11px', padding:'12px 14px', marginBottom:'8px',
+        display:'flex', alignItems:'center', gap:'12px'
+      }) });
+
+      card.appendChild(el('div', { style: s({ width:'32px', height:'32px', borderRadius:'50%', flexShrink:'0', background: medal?medal+'1a':'#111d2a', border:`2px solid ${medal||'#1e2d3d'}`, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'900', fontSize:'14px', color:medal||'#3a5a70' }) }, `${i+1}`));
+
+      const info = el('div', { style: s({ flex:'1', minWidth:'0' }) });
+      info.appendChild(el('div', { style: s({ fontWeight:'800', fontSize:'17px' }) }, p.name));
+      info.appendChild(el('div', { style: s({ fontSize:'10px', color:'#3a5a70', marginTop:'2px' }) }, `🎯${p.exact} exact · ✅${p.correct} result · ❌${p.wrong} wrong · ${p.scored} scored · ${predCount(p.id)}/${ALL_FIXTURES.length} predicted`));
+      const barWrap = el('div', { style: s({ marginTop:'6px', height:'3px', background:'#0f1a26', borderRadius:'2px', overflow:'hidden' }) });
+      barWrap.appendChild(el('div', { style: s({ height:'100%', width:`${pct}%`, background: medal?`linear-gradient(90deg,${medal},${medal}88)`:'linear-gradient(90deg,#c8102e,#e2b714)', borderRadius:'2px', transition:'width 0.5s' }) }));
+      info.appendChild(barWrap);
+      card.appendChild(info);
+
+      const scoreDiv = el('div', { style: s({ textAlign:'right', flexShrink:'0' }) });
+      scoreDiv.appendChild(el('div', { style: s({ fontSize:'34px', fontWeight:'900', color:medal||'#c8d8e8', lineHeight:'1' }) }, `${p.total}`));
+      scoreDiv.appendChild(el('div', { style: s({ fontSize:'9px', color:'#3a5a70', letterSpacing:'2px' }) }, 'PTS'));
+      card.appendChild(scoreDiv);
+      wrap.appendChild(card);
+    });
+
+    // Match detail
+    const played = ALL_FIXTURES.filter(f => { const a=state.actuals[f.id]; return a&&a.home!==undefined&&a.home!==''; });
+    if (played.length > 0) {
+      wrap.appendChild(el('div', { style: s({ fontSize:'13px', fontWeight:'800', letterSpacing:'2px', color:'#e2b714', textTransform:'uppercase', margin:'20px 0 10px', borderLeft:'3px solid #c8102e', paddingLeft:'10px' }) }, 'Match Detail'));
+      played.forEach(f => {
+        const a  = state.actuals[f.id];
+        const dh = f.round ? resolveName(f.id,'home',f.home) : f.home;
+        const da = f.round ? resolveName(f.id,'away',f.away) : f.away;
+        const mCard = el('div', { style: s({ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:'8px', padding:'9px 12px', marginBottom:'6px' }) });
+        mCard.appendChild(el('div', { style: s({ fontSize:'12px', fontWeight:'700', marginBottom:'5px' }) },
+          el('span', { style: s({ color:'#3a5a70', fontSize:'10px', marginRight:'8px' }) }, `${f.label} ${f.group?'Grp '+f.group:f.round}`),
+          `${FLAGS[dh]||'🏳️'} ${dh} `,
+          el('span', { style: s({ color:'#2ecc71', fontWeight:'900' }) }, `${a.home}–${a.away}`),
+          ` ${da} ${FLAGS[da]||'🏳️'}`
+        ));
+        const predsRow = el('div', { style: s({ display:'flex', gap:'5px', flexWrap:'wrap' }) });
+        PLAYERS.forEach(p => {
+          const pr  = state.preds[p.id]?.[f.id];
+          const pts = calcPts(pr, a);
+          const has = pr && pr.home !== undefined && pr.home !== '';
+          predsRow.appendChild(el('span', { style: s({ fontSize:'11px', padding:'3px 8px', borderRadius:'9px', fontWeight:'700', background:'rgba(255,255,255,0.04)', color: pts===SCORING.exact?'#e2b714':pts===SCORING.result?'#2ecc71':pts===0?'#ff6b7a':'#3a5a70' }) },
+            `${p.name}: ${has?`${pr.home}-${pr.away} (+${pts})`:'—'}`
+          ));
+        });
+        mCard.appendChild(predsRow);
+        wrap.appendChild(mCard);
+      });
+    }
+
+    wrap.appendChild(el('div', { style: s({ height:'24px' }) }));
+    return wrap;
+  }
+
+  function makePredictions() {
+    const wrap = el('div', { style: s({ padding:'14px 14px 0' }) });
+
+    // Player chips
+    const chips = el('div', { style: s({ display:'flex', flexWrap:'wrap', gap:'6px', marginBottom:'14px' }) });
+    PLAYERS.forEach(p => {
+      chips.appendChild(el('button', {
+        style: s({ padding:'7px 13px', borderRadius:'16px', cursor:'pointer',
+          background: state.activePlayer===p.id ? 'rgba(226,183,20,0.15)' : 'rgba(255,255,255,0.04)',
+          border: state.activePlayer===p.id ? '1px solid #e2b714' : '1px solid rgba(255,255,255,0.1)',
+          color: state.activePlayer===p.id ? '#e2b714' : '#c0cfe0',
+          fontWeight:'700', fontSize:'13px' }),
+        onClick: () => setState({ activePlayer: p.id })
+      }, `${p.name} `, el('span', { style: s({ fontSize:'10px', opacity:'0.55' }) }, `${predCount(p.id)}/${ALL_FIXTURES.length}`)));
+    });
+    wrap.appendChild(chips);
+
+    const activeName = PLAYERS.find(p=>p.id===state.activePlayer)?.name;
+    wrap.appendChild(el('div', { style: s({ fontSize:'12px', color:'#2ecc71', marginBottom:'12px' }) }, '✏️ ', el('strong', { style: s({ color:'#fff' }) }, activeName)));
+
+    wrap.appendChild(makeStageToggle());
+    wrap.appendChild(makeDateTabs());
+
+    const fixtures = (state.stage==='group' ? GROUP_FIXTURES : KNOCKOUT_FIXTURES).filter(f=>f.date===state.activeDate);
+    if (fixtures.length===0) {
+      wrap.appendChild(el('div', { style: s({ color:'#3a5a70', textAlign:'center', padding:'30px', fontSize:'13px' }) }, 'No fixtures on this date.'));
+    } else {
+      fixtures.forEach(f => wrap.appendChild(makeFixtureCard(f, 'predict')));
+    }
+    return wrap;
+  }
+
+  function makeResults() {
+    if (!state.unlocked) {
+      return el('div', { style: s({ padding:'40px', textAlign:'center' }) },
+        el('div', { style: s({ fontSize:'44px', marginBottom:'12px' }) }, '🔐'),
+        el('div', { style: s({ fontSize:'15px', fontWeight:'900', letterSpacing:'3px', color:'#e2b714', textTransform:'uppercase', marginBottom:'6px' }) }, 'Admin'),
+        el('div', { style: s({ fontSize:'12px', color:'#5a7a90', marginBottom:'20px' }) }, 'Enter PIN to record match results'),
+        (() => {
+          const inp = el('input', { type:'password', placeholder:'PIN', style: s({ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'8px', color:'#fff', padding:'10px 14px', fontSize:'18px', textAlign:'center', outline:'none', width:'130px', marginBottom:'12px' }) });
+          inp.addEventListener('input', e => setState({ pinInput: e.target.value }));
+          inp.addEventListener('keydown', e => { if(e.key==='Enter') tryUnlock(); });
+          return inp;
+        })(),
+        el('br'),
+        el('button', {
+          style: s({ background:'linear-gradient(135deg,#c8102e,#8b0000)', color:'#fff', border:'none', borderRadius:'8px', padding:'10px 24px', fontSize:'14px', fontWeight:'700', letterSpacing:'2px', textTransform:'uppercase', cursor:'pointer', marginTop:'12px' }),
+          onClick: tryUnlock
+        }, 'Unlock'),
+        el('div', { style: s({ marginTop:'14px', fontSize:'11px', color:'#3a5a70' }) }, 'Default PIN: 1234')
+      );
+    }
+
+    function tryUnlock() {
+      if (state.pinInput === state.adminPin) setState({ unlocked: true, pinInput: '' });
+      else setState({ pinInput: '' });
+    }
+
+    const completedResults = ALL_FIXTURES.filter(f => { const a=state.actuals[f.id]; return a&&a.home!==undefined&&a.home!==''; }).length;
+    const wrap = el('div', { style: s({ padding:'14px 14px 0' }) });
+
+    const hdr = el('div', { style: s({ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'14px' }) });
+    hdr.appendChild(el('div', { style: s({ fontSize:'17px', fontWeight:'900', letterSpacing:'2px', color:'#e2b714', textTransform:'uppercase' }) }, '📝 Enter Results'));
+    hdr.appendChild(el('button', { style: s({ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#5a7a90', borderRadius:'7px', padding:'5px 11px', fontSize:'11px', cursor:'pointer' }), onClick: () => setState({ unlocked: false }) }, '🔒 Lock'));
+    wrap.appendChild(hdr);
+
+    // PIN changer
+    const pinBox = el('div', { style: s({ background:'rgba(226,183,20,0.06)', border:'1px solid rgba(226,183,20,0.18)', borderRadius:'9px', padding:'10px 14px', marginBottom:'14px' }) });
+    pinBox.appendChild(el('div', { style: s({ fontSize:'12px', color:'#e2b714', fontWeight:'700', marginBottom:'8px' }) }, 'Change PIN'));
+    const pinRow = el('div', { style: s({ display:'flex', gap:'8px' }) });
+    const pinInp = el('input', { type:'password', placeholder:'New PIN', style: s({ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.15)', borderRadius:'7px', color:'#fff', padding:'7px 10px', fontSize:'14px', outline:'none', width:'120px' }) });
+    pinInp.addEventListener('input', e => setState({ newPin: e.target.value }));
+    pinRow.appendChild(pinInp);
+    pinRow.appendChild(el('button', {
+      style: s({ background:'rgba(226,183,20,0.18)', border:'1px solid #e2b714', color:'#e2b714', borderRadius:'7px', padding:'7px 14px', fontSize:'12px', fontWeight:'700', cursor:'pointer', letterSpacing:'1px' }),
+      onClick: () => { if(state.newPin){ lsSet(LS.pin, state.newPin); setState({ adminPin: state.newPin, newPin: '' }); showSaved(); } }
+    }, 'Save'));
+    pinBox.appendChild(pinRow);
+    wrap.appendChild(pinBox);
+
+    if (state.stage==='knockout') {
+      wrap.appendChild(el('div', { style: s({ background:'rgba(120,90,170,0.08)', border:'1px solid rgba(120,90,170,0.25)', borderRadius:'9px', padding:'9px 13px', marginBottom:'12px', fontSize:'12px', color:'#c8b8f0' }) },
+        '💡 Type team names into the purple fields as teams qualify.'));
+    }
+
+    wrap.appendChild(el('div', { style: s({ fontSize:'11px', color:'#5a7a90', marginBottom:'12px' }) }, `${completedResults}/${ALL_FIXTURES.length} results entered`));
+    wrap.appendChild(makeStageToggle());
+    wrap.appendChild(makeDateTabs());
+
+    const fixtures = (state.stage==='group' ? GROUP_FIXTURES : KNOCKOUT_FIXTURES).filter(f=>f.date===state.activeDate);
+    if (fixtures.length===0) {
+      wrap.appendChild(el('div', { style: s({ color:'#3a5a70', textAlign:'center', padding:'30px', fontSize:'13px' }) }, 'No fixtures on this date.'));
+    } else {
+      fixtures.forEach(f => wrap.appendChild(makeFixtureCard(f, 'results')));
+    }
+    return wrap;
+  }
+
+  function tryUnlock() {
+    if (state.pinInput === state.adminPin) setState({ unlocked: true, pinInput: '' });
+    else setState({ pinInput: '' });
+  }
+
+  // ─── RENDER ────────────────────────────────────────────────────────────────
+
+  function render() {
+    const root = document.getElementById('root');
+    root.innerHTML = '';
+
+    root.appendChild(makeHeader());
+    root.appendChild(makeNav());
+
+    if (state.view==='scoreboard')  root.appendChild(makeScoreboard());
+    if (state.view==='predictions') root.appendChild(makePredictions());
+    if (state.view==='results')     root.appendChild(makeResults());
+
+    if (state.flashSaved) {
+      root.appendChild(el('div', { style: s({ position:'fixed', bottom:'16px', right:'16px', zIndex:'9999', background:'#0a2a18', border:'1px solid #2a7a4a', color:'#2ecc71', borderRadius:'20px', padding:'6px 16px', fontSize:'12px', fontWeight:'700', letterSpacing:'1px', boxShadow:'0 4px 16px rgba(0,0,0,0.5)' }) }, '✓ Saved'));
+    }
+  }
+
+  render();
+  </script>
+</body>
+</html>
